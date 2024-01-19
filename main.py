@@ -27,6 +27,7 @@ pygame.display.set_caption('Snake Game')
 tic = pygame.time.Clock()
 player_name = ''
 default_player_name = True
+MAIN_THEME = pygame_menu.themes.THEME_BLUE
 
 
 class DataBase:
@@ -93,7 +94,7 @@ def show_obj(pos_obj, s_width, s_height):
 # функция открытия стартового меню
 def show_start_screen():
     start_menu = pygame_menu.Menu(width=x, height=y, title='Хорошей игры!',
-                                      theme=pygame_menu.themes.THEME_BLUE)
+                                      theme=MAIN_THEME)
     start_menu.add.text_input("Ваше имя: ", default='Гость', onchange=set_player_name)
     start_menu.add.selector("Сложность: ",
                                 [("Просто", 1), ("Нормально", 2), ("Сложно", 3)],
@@ -204,9 +205,15 @@ def game_loop():
             new_direction = "RIGHT"
         if keys[pygame.K_UP]:
             new_direction = "UP"
-
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_a]:
+            new_direction = "LEFT"
+        if keys[pygame.K_d]:
+            new_direction = "RIGHT"
+        if keys[pygame.K_w]:
+            new_direction = "UP"
+        if keys[pygame.K_s]:
             new_direction = "DOWN"
+
         if snake_direction != "UP" and new_direction == "DOWN":
             snake_direction = new_direction
         if snake_direction != "DOWN" and new_direction == "UP":
@@ -233,7 +240,7 @@ def game_loop():
             snake_body.pop()
 
         if isclose(snake_position[0], collision_obj_position[0], abs_tol=(snake_width - 10)) and isclose(snake_position[1], collision_obj_position[1], abs_tol=(snake_height - 10)):
-            show_end_screen(game_score)
+            cat_finish(game_score)
 
         if not show_food:
             food_position = new_food_pose()
@@ -255,18 +262,19 @@ def game_loop():
 
         # Если змейка врезается в стену игра заканчивается
         if snake_position[0] < 0 or snake_position[0] > (x - snake_width/2):
-            show_end_screen(game_score)
+            cat_finish(game_score)
         if snake_position[1] < 0 or snake_position[1] > (y - snake_height/2):
-            show_end_screen(game_score)
+            cat_finish(game_score)
         show_score('consolas', 20, game_score)
         pygame.display.update()
 
         tic.tick(difficulty)
 
 
-class MySprite(pygame.sprite.Sprite):
+# класс для анимации кота после старта
+class MyСat_Start(pygame.sprite.Sprite):
     def __init__(self):
-        super(MySprite, self).__init__()
+        super(MyСat_Start, self).__init__()
 
         self.images = []
         self.images.append(pygame.image.load('0.png'))
@@ -287,10 +295,11 @@ class MySprite(pygame.sprite.Sprite):
         self.image = self.images[self.index]
 
 
+# функция для запуска анимации на старте
 def cat_start():
     screen = pygame.display.set_mode((250, 250))
     time = 0
-    my_sprite = MySprite()
+    my_sprite = MyСat_Start()
     my_group = pygame.sprite.Group(my_sprite)
 
     while True:
@@ -308,6 +317,140 @@ def cat_start():
         pygame.display.update()
         tic.tick(10)
         time += 1
+
+
+# класс для анимации кота после плохого результата в игре
+class MyСat_Bad(pygame.sprite.Sprite):
+    def __init__(self):
+        super(MyСat_Bad, self).__init__()
+
+        self.images = []
+        self.images.append(pygame.image.load('2.png'))
+        self.images.append(pygame.image.load('3.png'))
+        self.images.append(pygame.image.load('4.png'))
+        self.images.append(pygame.image.load('5.png'))
+        self.images.append(pygame.image.load('6.png'))
+        self.images.append(pygame.image.load('7.png'))
+        self.images.append(pygame.image.load('8.png'))
+        self.images.append(pygame.image.load('9.png'))
+        self.images.append(pygame.image.load('10.png'))
+        self.images.append(pygame.image.load('11.png'))
+        self.images.append(pygame.image.load('12.png'))
+        self.images.append(pygame.image.load('13.png'))
+        self.images.append(pygame.image.load('14.png'))
+        self.images.append(pygame.image.load('15.png'))
+        self.images.append(pygame.image.load('16.png'))
+        self.images.append(pygame.image.load('17.png'))
+        self.images.append(pygame.image.load('18.png'))
+        self.images.append(pygame.image.load('19.png'))
+
+        self.index = 0
+
+        self.image = self.images[self.index]
+
+        self.rect = pygame.Rect(5, 5, 150, 198)
+
+    def update(self):
+        self.index += 1
+
+        if self.index >= len(self.images):
+            self.index = 0
+
+        self.image = self.images[self.index]
+
+
+# класс для анимации кота после среднего результата в игре
+class MyСat_Midl(pygame.sprite.Sprite):
+    def __init__(self):
+        super(MyСat_Midl, self).__init__()
+
+        self.images = []
+        self.images.append(pygame.image.load('20.png'))
+        self.images.append(pygame.image.load('21.png'))
+        self.images.append(pygame.image.load('22.png'))
+        self.images.append(pygame.image.load('23.png'))
+        self.images.append(pygame.image.load('24.png'))
+        self.images.append(pygame.image.load('25.png'))
+        self.images.append(pygame.image.load('26.png'))
+        self.images.append(pygame.image.load('27.png'))
+        self.images.append(pygame.image.load('28.png'))
+        self.images.append(pygame.image.load('29.png'))
+
+        self.index = 0
+
+        self.image = self.images[self.index]
+
+        self.rect = pygame.Rect(5, 5, 150, 198)
+
+    def update(self):
+        self.index += 1
+
+        if self.index >= len(self.images):
+            self.index = 0
+
+        self.image = self.images[self.index]
+
+
+# класс для анимации кота после хорошего результата в игре
+class MyСat_Cool(pygame.sprite.Sprite):
+    def __init__(self):
+        super(MyСat_Cool, self).__init__()
+
+        self.images = []
+        self.images.append(pygame.image.load('30.png'))
+        self.images.append(pygame.image.load('31.png'))
+        self.images.append(pygame.image.load('32.png'))
+        self.images.append(pygame.image.load('33.png'))
+
+        self.index = 0
+
+        self.image = self.images[self.index]
+
+        self.rect = pygame.Rect(5, 5, 150, 198)
+
+    def update(self):
+        self.index += 1
+
+        if self.index >= len(self.images):
+            self.index = 0
+
+        self.image = self.images[self.index]
+
+
+# функция запуска анимации кота после игры
+def cat_finish(game_score):
+    time = 0
+    if game_score < 50:
+        screen = pygame.display.set_mode((600, 500))
+        my_sprite = MyСat_Bad()
+    elif game_score < 100:
+        screen = pygame.display.set_mode((600, 500))
+        my_sprite = MyСat_Midl()
+    else:
+        screen = pygame.display.set_mode((300, 250))
+        my_sprite = MyСat_Cool()
+    my_group = pygame.sprite.Group(my_sprite)
+
+    while True:
+        if time == 20:
+            screen = pygame.display.set_mode((600, 400))
+            show_end_screen(game_score)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        my_group.update()
+        screen.fill(pygame.Color('black'))
+        my_group.draw(screen)
+        pygame.display.update()
+        tic.tick(10)
+        time += 1
+
+
+def change_theme():
+    pass
+
 
 
 show_start_screen()
