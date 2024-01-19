@@ -4,6 +4,7 @@ import random
 import sys
 from typing import Tuple, Any
 from math import isclose
+import sqlite3 as sl
 
 pygame.init()
 
@@ -26,6 +27,24 @@ pygame.display.set_caption('Snake Game')
 tic = pygame.time.Clock()
 player_name = ''
 default_player_name = True
+
+
+class DataBase:
+    con = sl.connect('records.db')
+
+    with con:
+        data = con.execute("select count(*) from sqlite_master \
+        where type='table' and name='records'")
+        for row in data:
+            if row[0] == 0:
+                con.execute("""
+                            CREATE TABLE records (
+                                name STRING,
+                                score INTEGER
+                            );
+                        """)
+    sqlite_insert_score = """ INSERT INTO records
+                                             (name, score) VALUES (?, ?)"""
 
 
 # функция для изменения позиции еды на поле по клеточкам размера 10 пикселей
@@ -75,11 +94,12 @@ def show_obj(pos_obj, s_width, s_height):
 def show_start_screen():
     start_menu = pygame_menu.Menu(width=x, height=y, title='Хорошей игры!',
                                   theme=pygame_menu.themes.THEME_BLUE)
-    start_menu.add.text_input("Ваше имя: ", default='Гость')
+    start_menu.add.text_input("Ваше имя: ", default='Гость', onchange=set_player_name)
     start_menu.add.selector("Сложность: ",
                             [("Просто", 1), ("Нормально", 2), ("Сложно", 3)],
                             onchange=set_game_diff)
     start_menu.add.button("Играть", game_loop)
+    start_menu.add.button("Рейтинг", show_records_screen)
     start_menu.add.button("Выйти", pygame_menu.events.EXIT)
     start_menu.mainloop(screen)
 
@@ -95,9 +115,39 @@ def show_end_screen(game_score):
                                 title='Игра окончена',
                                 theme=pygame_menu.themes.THEME_BLUE)
     end_menu.add.label("Вас счёт:" + str(game_score))
-    end_menu.add.button("Играть заново", replay_game)
+    end_menu.add.button("Играть заново", show_start_screen)
     end_menu.add.button("Выйти", pygame_menu.events.EXIT)
+    data = (str(player_name), game_score)
+    DataBase.con.execute(DataBase.sqlite_insert_score, data)
+    with DataBase.con:
+        data = DataBase.con.execute("SELECT * FROM records")
+        for row in data:
+            print(row)
     end_menu.mainloop(screen)
+
+
+def show_records_screen():
+    records = []
+    with DataBase.con:
+        data = DataBase.con.execute("SELECT * FROM records")
+        for i in data:
+            records.append(i)
+
+    # сортировка пузырьком всех результатов из бд для составления рейтинга
+    for i in range(len(records) - 1):
+        for j in range(len(records) - 2, i - 1, -1):
+            if records[j + 1][1] > records[j][1]:
+                records[j + 1], records[j] = records[j], records[j + 1]
+
+    records_menu = pygame_menu.Menu(width=x, height=y,
+                                    title='Таблица рекордов',
+                                    theme=pygame_menu.themes.THEME_ORANGE)
+    records_menu.add.table("table")
+
+    for i in records:
+        records_menu.get_widgets()[0].add_row(i)
+    print(records)
+    records_menu.mainloop(screen)
 
 
 # функция установки имени пользователя
