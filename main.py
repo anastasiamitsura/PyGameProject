@@ -93,12 +93,12 @@ def show_obj(pos_obj, s_width, s_height):
 # функция открытия стартового меню
 def show_start_screen():
     start_menu = pygame_menu.Menu(width=x, height=y, title='Хорошей игры!',
-                                  theme=pygame_menu.themes.THEME_BLUE)
+                                      theme=pygame_menu.themes.THEME_BLUE)
     start_menu.add.text_input("Ваше имя: ", default='Гость', onchange=set_player_name)
     start_menu.add.selector("Сложность: ",
-                            [("Просто", 1), ("Нормально", 2), ("Сложно", 3)],
-                            onchange=set_game_diff)
-    start_menu.add.button("Играть", game_loop)
+                                [("Просто", 1), ("Нормально", 2), ("Сложно", 3)],
+                                onchange=set_game_diff)
+    start_menu.add.button("Играть", cat_start)
     start_menu.add.button("Рейтинг", show_records_screen)
     start_menu.add.button("Выйти", pygame_menu.events.EXIT)
     start_menu.mainloop(screen)
@@ -126,6 +126,7 @@ def show_end_screen(game_score):
     end_menu.mainloop(screen)
 
 
+# функция окна рекордов
 def show_records_screen():
     records = []
     with DataBase.con:
@@ -144,9 +145,10 @@ def show_records_screen():
                                     theme=pygame_menu.themes.THEME_ORANGE)
     records_menu.add.table("table")
 
+    # заполнение таблицы рекордами
     for i in records:
         records_menu.get_widgets()[0].add_row(i)
-    print(records)
+    records_menu.add.button("Главное меню", show_start_screen)
     records_menu.mainloop(screen)
 
 
@@ -166,6 +168,7 @@ def set_def_p_name():
     default_player_name = False
 
 
+# функция самой игры
 def game_loop():
     x1 = x/2
     y1 = y/2
@@ -259,6 +262,52 @@ def game_loop():
         pygame.display.update()
 
         tic.tick(difficulty)
+
+
+class MySprite(pygame.sprite.Sprite):
+    def __init__(self):
+        super(MySprite, self).__init__()
+
+        self.images = []
+        self.images.append(pygame.image.load('0.png'))
+        self.images.append(pygame.image.load('1.png'))
+
+        self.index = 0
+
+        self.image = self.images[self.index]
+
+        self.rect = pygame.Rect(5, 5, 150, 198)
+
+    def update(self):
+        self.index += 1
+
+        if self.index >= len(self.images):
+            self.index = 0
+
+        self.image = self.images[self.index]
+
+
+def cat_start():
+    screen = pygame.display.set_mode((250, 250))
+    time = 0
+    my_sprite = MySprite()
+    my_group = pygame.sprite.Group(my_sprite)
+
+    while True:
+        if time == 20:
+            screen = pygame.display.set_mode((600, 400))
+            game_loop()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        my_group.update()
+        screen.fill(pygame.Color('white'))
+        my_group.draw(screen)
+        pygame.display.update()
+        tic.tick(10)
+        time += 1
 
 
 show_start_screen()
